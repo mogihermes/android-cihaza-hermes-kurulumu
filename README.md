@@ -44,9 +44,10 @@ Android izin penceresini onayla. Bu işlem `~/storage` altında ortak depolama k
 
 ## 4. Hermes'i resmî kurulum betiğiyle yükle
 
-Önce Git'in varlığını kontrol et; yoksa kur:
+Önce `curl` ve Git'in varlığını kontrol et; eksik olanı kur:
 
 ```bash
+curl --version || pkg install curl
 git --version || pkg install git
 ```
 
@@ -94,6 +95,8 @@ Zamanlanmış işler Hermes'in cron sistemiyle çalışır. Ancak Android, arka 
 
 - Termux'u Android pil optimizasyonundan çıkar.
 - Uygulamayı zorla kapatma.
+- İsteğe bağlı olarak CPU'nun uykuya geçmesini geciktirmek için `termux-wake-lock` çalıştır; bırakmak için `termux-wake-unlock` kullan.
+- `termux-wake-lock`, Android'in uygulamayı bellek/pil politikaları nedeniyle durdurmasını **garantiyle engellemez**.
 - Uzun süreli, kritik otomasyonlarda VPS/sunucu kullanmayı düşün.
 
 ## 7. Termux'taki bilinen sınırlar
@@ -176,3 +179,7 @@ pkg upgrade hermes-agent
 - [Termux resmî sitesi](https://termux.dev)
 - [Termux GitHub yayınları](https://github.com/termux/termux-app/releases)
 - [İleri seviye Termux Hermes rehberi](https://github.com/mogihermes/hermes-termux-tr)
+
+## Lisans ve atıf
+
+Bu rehberdeki özgün Türkçe açıklamalar [CC BY 4.0](LICENSE) ile yayımlanır. Hermes Agent, Termux ve diğer üçüncü taraf kaynaklara ait adlar, komutlar ve alıntılanan materyaller kendi sahiplerinin koşullarına tabidir; bu rehber onlara ilişkin ek lisans hakkı vermez.
