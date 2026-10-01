@@ -99,6 +99,19 @@ Zamanlanmış işler Hermes'in cron sistemiyle çalışır. Ancak Android, arka 
 - `termux-wake-lock`, Android'in uygulamayı bellek/pil politikaları nedeniyle durdurmasını **garantiyle engellemez**.
 - Uzun süreli, kritik otomasyonlarda VPS/sunucu kullanmayı düşün.
 
+### Kaçan hatırlatmalar ve takılı cron işleri
+
+Tek seferlik bir hatırlatma, gateway/scheduler Android tarafından durdurulursa geç teslim edilmek yerine kaçabilir. Kritik bir iş için gateway ve cron durumunu önce kontrol et:
+
+```bash
+termux-wake-lock
+hermes gateway status
+hermes cron status
+```
+
+- Cron içinde `while true` ile hiç bitmeyen bir watchdog çalıştırma; o cron çalışmasını meşgul eder. Watchdog, gateway çalışıyorsa hemen çıkmalı; çalışmıyorsa başlatıp yine hemen dönmelidir.
+- Kaçan tek seferlik hatırlatmayı yeni bir zamanla yeniden oluştur. Kritik saatler için telefon bildirimi/Alarm veya VPS gibi ikinci bir kanal kullan.
+
 ## 7. Termux'taki bilinen sınırlar
 
 | Özellik | Durum |
@@ -176,6 +189,7 @@ pkg upgrade hermes-agent
 - [Hermes Agent — Android / Termux](https://hermes-agent.nousresearch.com/docs/getting-started/termux)
 - [Hermes Agent — Kurulum](https://hermes-agent.nousresearch.com/docs/getting-started/installation)
 - [Hermes Agent — Güncelleme](https://hermes-agent.nousresearch.com/docs/getting-started/updating)
+- [Hermes Agent — Cron](https://hermes-agent.nousresearch.com/docs/user-guide/features/cron)
 - [Termux resmî sitesi](https://termux.dev)
 - [Termux GitHub yayınları](https://github.com/termux/termux-app/releases)
 - [İleri seviye Termux Hermes rehberi](https://github.com/mogihermes/hermes-termux-tr)
