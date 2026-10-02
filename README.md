@@ -1,188 +1,144 @@
 # Android Cihaza Hermes Agent Kurulumu — Termux Türkçe Rehberi
 
-Android telefonda Termux kullanarak Hermes Agent kurulumunu sıfırdan anlatan Türkçe rehber.
+> **Güncel resmî durum:** Termux paketi şu anda çalışmıyor. Düzeltme hazırlanıyor; aşağıdaki adımlar başarısız olabilir veya çalışmayan bir paket kurabilir. Bu nedenle kritik kullanım için düzeltme yayımlanana kadar bekleyin.
 
-> **Platform durumu:** Android/Termux, Hermes için best-effort / Tier 2 platformdur. Telefonunda çalışan bir CLI ve Telegram gateway kurabilirsin; ancak masaüstü/sunucu özelliklerinin tamamı garanti edilmez.
+Android telefonda standart Termux uygulamasıyla Hermes Agent'ın resmî, imzalı APT paketi üzerinden kurulumu.
 
-## Bu rehber kimin için?
+## Destek ve uyumluluk
 
-- Android telefonda Hermes'i terminalden kullanmak isteyenler
-- Telegram botu veya zamanlanmış görev çalıştırmak isteyenler
-- Root kullanmadan yerel bir geliştirme/otomasyon ortamı isteyenler
+- Yalnızca standart Termux uygulamasının varsayılan öneki (`/data/data/com.termux/files/usr`) desteklenir.
+- Yalnızca aarch64 (`arm64-v8a`) Android cihazlar desteklenir; paket hedefi `android_24_arm64_v8a`dır.
+- Yeniden adlandırılmış Termux uygulama paketleri ve başka mimariler desteklenmez.
+- Android/Termux için masaüstü/sunucu `install.sh` betiğini veya glibc Linux arşivini **kullanmayın**.
 
 ## 1. Termux'u güvenli kaynaktan kur
 
-Termux, root gerektirmeden çalışan Android terminal emülatörü ve Linux ortamıdır. Uygulamayı **tek bir kaynaktan** kur; farklı kaynaklardaki Termux uygulaması ve eklentilerini karıştırma.
+Termux, root gerektirmeden çalışan Android terminal emülatörü ve Linux ortamıdır. Uygulamayı ve eklentilerini tek bir kaynaktan kurun; farklı kaynakları karıştırmayın.
 
 - Resmî Termux sitesi: <https://termux.dev>
 - F-Droid: <https://f-droid.org/packages/com.termux/>
 - GitHub yayınları: <https://github.com/termux/termux-app/releases>
 
-Uygulamayı aç ve Android'in istediği depolama/bildirim izinlerini yalnızca ihtiyacın varsa ver.
+## 2. Resmî Hermes APT deposunu ekle
 
-## 2. Termux'u güncelle
-
-```bash
-pkg update && pkg upgrade
-```
-
-Paket aynası yavaş veya bozuksa önce şunu çalıştırıp bir ayna seç:
+Önce depo kurulumu için gerekli araçları yükleyin:
 
 ```bash
-termux-change-repo
+pkg install curl gnupg
 ```
 
-## 3. İsteğe bağlı: Telefon depolamasına erişim
-
-Dosyalarına Termux üzerinden erişmen gerekiyorsa:
+Anahtarlık dizinini oluşturup açık anahtarı indirin:
 
 ```bash
-termux-setup-storage
+mkdir -p "$PREFIX/etc/apt/keyrings"
+curl -fsSL \
+  https://hermes-assets.nousresearch.com/releases/termux/stable/key.asc \
+  -o "$PREFIX/etc/apt/keyrings/hermes-agent.asc"
 ```
 
-Android izin penceresini onayla. Bu işlem `~/storage` altında ortak depolama kısayolları oluşturur. Gizli anahtarları veya Hermes `~/.hermes/.env` dosyasını ortak depolamada tutma.
-
-## 4. Hermes'i resmî kurulum betiğiyle yükle
-
-Önce `curl` ve Git'in varlığını kontrol et; eksik olanı kur:
+Anahtarın birincil parmak izini doğrulayın:
 
 ```bash
-curl --version || pkg install curl
-git --version || pkg install git
+gpg --show-keys --with-fingerprint "$PREFIX/etc/apt/keyrings/hermes-agent.asc"
 ```
 
-Ardından resmî Hermes installer'ını çalıştır:
+Beklenen parmak izi şudur:
+
+```text
+C572 B5FD D1A2 9CCF A9A9 12B6 840B 0848 E139 156D
+```
+
+Parmak izi farklıysa durun; imza doğrulamasını devre dışı bırakmayın.
+
+Depoyu ekleyin:
 
 ```bash
-curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
+printf '%s\n' \
+  "deb [signed-by=$PREFIX/etc/apt/keyrings/hermes-agent.asc] https://hermes-assets.nousresearch.com/releases/termux/stable hermes-stable main" \
+  > "$PREFIX/etc/apt/sources.list.d/hermes-agent.list"
 ```
 
-Kurulum, Termux'ta gerekli paketleri ve Python ortamını hazırlamayı dener; `hermes` komutunu PATH'e bağlar. Yeni terminal aç veya kabuk ayarını yeniden yükle:
+## 3. Hermes'i kur ve başlat
 
 ```bash
-source ~/.bashrc
+pkg update
+pkg install hermes-agent
+hermes setup
+hermes --tui
 ```
 
-## 5. Kurulumu doğrula ve Hermes'i başlat
+Paket; Python, Node.js, npm, uv, ripgrep, ffmpeg ve çalışma zamanı kütüphanelerini içerir. `hermes`, `hermes-agent` ve `hermes-acp` paketli çalışma zamanlarını kullanır; Termux'un `python` veya `nodejs` paketlerini ayrıca kurmanız gerekmez.
 
-```bash
-hermes --version
-hermes doctor
-hermes
-```
+## 4. Dosyalar ve güncelleme
 
-İlk açılışta model/sağlayıcı seçimi istenir. Sonradan değiştirmek için:
-
-```bash
-hermes model
-```
-
-Nous Portal hesabıyla kurulum yapmak istersen:
-
-```bash
-hermes setup --portal
-```
-
-## 6. Telegram ve zamanlanmış işler
-
-Telegram gateway için önce interaktif yapılandırmayı başlat:
-
-```bash
-hermes gateway setup
-```
-
-Zamanlanmış işler Hermes'in cron sistemiyle çalışır. Ancak Android, arka plandaki Termux işlemlerini pil tasarrufu için durdurabilir. Sürekli açık gateway veya cron görevleri için:
-
-- Termux'u Android pil optimizasyonundan çıkar.
-- Uygulamayı zorla kapatma.
-- İsteğe bağlı olarak CPU'nun uykuya geçmesini geciktirmek için `termux-wake-lock` çalıştır; bırakmak için `termux-wake-unlock` kullan.
-- `termux-wake-lock`, Android'in uygulamayı bellek/pil politikaları nedeniyle durdurmasını **garantiyle engellemez**.
-- Uzun süreli, kritik otomasyonlarda VPS/sunucu kullanmayı düşün.
-
-### Kaçan hatırlatmalar ve takılı cron işleri
-
-Tek seferlik bir hatırlatma, gateway/scheduler Android tarafından durdurulursa geç teslim edilmek yerine kaçabilir. Kritik bir iş için gateway ve cron durumunu önce kontrol et:
-
-```bash
-termux-wake-lock
-hermes gateway status
-hermes cron status
-```
-
-- Cron içinde `while true` ile hiç bitmeyen bir watchdog çalıştırma; o cron çalışmasını meşgul eder. Watchdog, gateway çalışıyorsa hemen çıkmalı; çalışmıyorsa başlatıp yine hemen dönmelidir.
-- Kaçan tek seferlik hatırlatmayı yeni bir zamanla yeniden oluştur. Kritik saatler için telefon bildirimi/Alarm veya VPS gibi ikinci bir kanal kullan.
-
-## 7. Termux'taki bilinen sınırlar
-
-| Özellik | Durum |
+| İçerik | Konum |
 | --- | --- |
-| Hermes CLI, cron, PTY/arka plan terminali, Telegram gateway | Test edilmiş Termux yolunda desteklenir |
-| Docker tabanlı terminal yalıtımı | Termux içinde yok |
-| Yerel sesli yazıya döküm (`faster-whisper`) | Android wheel'i olmadığı için test edilen yolda yok |
-| Browser / Playwright otomatik kurulumu | Installer tarafından atlanır; deneysel kabul edilir |
-| Arka plan gateway sürekliliği | Android tarafından durdurulabilir; best-effort |
+| Paket dosyaları | `$PREFIX/lib/hermes-agent/` |
+| Komut bağlantıları | `$PREFIX/bin/hermes`, `$PREFIX/bin/hermes-agent`, `$PREFIX/bin/hermes-acp` |
+| Yapılandırma ve kullanıcı verisi | `~/.hermes/`, veya seçilmiş `HERMES_HOME` |
 
-## 8. Sık karşılaşılan sorunlar
-
-### `hermes: command not found`
-
-Yeni bir terminal aç. Devam ederse:
-
-```bash
-source ~/.bashrc
-hermes doctor
-```
-
-### Python sürümü desteklenmiyor
-
-Resmî Termux sayfasına göre Hermes Python `>=3.11,<3.14` gerektirir. Termux'taki güncel Python bu aralığın dışındaysa installer desteklenen yorumlayıcıyı bulmaya çalışır. Manuel kurulum yapıyorsan resmî Termux sayfasındaki `python3.13` yönergesini izle.
-
-### Bağımlılık derleme hatası
-
-Manuel kaynak kurulumunda Android derleme araçları gerekir:
-
-```bash
-pkg install clang rust make pkg-config libffi openssl
-```
-
-Ardından Termux'a özel kurulum yolunu kullan:
-
-```bash
-python -m pip install -e '.[termux]' -c constraints-termux.txt
-```
-
-### `ANDROID_API_LEVEL` / `jiter` / `maturin` hatası
-
-Kaynak dizininde API seviyesini ayarlayıp tekrar dene:
-
-```bash
-export ANDROID_API_LEVEL="$(getprop ro.build.version.sdk)"
-```
-
-### Voice veya `[all]` kurulumu başarısız
-
-`faster-whisper` bağımlılığı olan `ctranslate2`, Android wheel yayımlamaz. `.[all]` yerine resmî belgelerdeki `.[termux]` veya `.[termux-all]` yolunu tercih et.
-
-## 9. Hızlı native APT paketi alternatifi
-
-Cihazda Python/Rust bağımlılıklarını derlemek istemiyorsan topluluk tarafından işletilen native APT paketi seçeneği vardır. Bu **NousResearch'ün resmî dağıtımı değildir**; imzalama anahtarına ve depo işletmecisine güvenmen gerekir.
-
-Paketli seçenek, güncelleme politikası ve teknik ayrıntılar için şu rehbere git:
-
-➡️ **[Termux için Hermes Agent — Türkçe teknik rehber](https://github.com/mogihermes/hermes-termux-tr)**
-
-APT ile kurulmuş Hermes sürümleri `hermes update` yerine şu komutla güncellenir:
+APT ile kurulmuş Hermes'i yalnızca APT ile güncelleyin:
 
 ```bash
 pkg update
 pkg upgrade hermes-agent
 ```
 
-## Güvenlik notları
+`hermes update`, APT'nin sahip olduğu kurulumu değiştirmeyi reddeder ve paket yöneticisi komutunu gösterir.
 
-- API anahtarlarını yalnızca `~/.hermes/.env` içinde tut; sohbete, Git deposuna veya ortak depolamaya yazma.
-- `curl | bash` yalnızca bildiğin ve doğruladığın alan adlarından çalıştırılmalıdır. Bu rehberdeki resmî installer alan adı: `hermes-agent.nousresearch.com`.
-- Topluluk APT paketi, resmî installer ile aynı güven zincirine sahip değildir. Seçmeden önce teknik rehberdeki anahtar parmak izini ve kaynak depoyu incele.
+### Canary kanalı
+
+Kararlı sürüm yerine ön sürümleri izlemek için depo URL'sindeki `stable` değerini `canary`, APT suite değerindeki `hermes-stable` ifadesini `hermes-canary` yapın. İki kanal aynı anahtarla imzalanır. Kanallar arasında geçerken `hermes-agent.list` içindeki hem kanal yolunu hem suite'i değiştirin; ardından şunu çalıştırın:
+
+```bash
+pkg update && pkg upgrade hermes-agent
+```
+
+## 5. Gateway ve cron
+
+Bu APT kurulumu `systemd`, `launchd` veya Windows Scheduled Tasks kullanmaz. Gateway'i Termux oturumunda çalıştırın:
+
+```bash
+hermes gateway run
+```
+
+Arka plan süreci için:
+
+```bash
+mkdir -p "${HERMES_HOME:-$HOME/.hermes}/logs"
+nohup hermes gateway run >> "${HERMES_HOME:-$HOME/.hermes}/logs/gateway.log" 2>&1 &
+```
+
+Android, arka plandaki Termux süreçlerini askıya alabilir veya sonlandırabilir. Pil optimizasyonu istisnası ve `termux-wake-lock` yardımcı olabilir; kalıcılığı garanti etmez. Kritik otomasyonlarda ikinci kanal veya sunucu kullanın.
+
+## 6. Sınırlar ve sorun giderme
+
+- Paket `nemo-relay` exporter'ını, Electron'ı, yerel Chromium'u, masaüstü computer-use araçlarını veya yerel Docker daemon'unu içermez.
+- Termux:API mikrofon/pano adaptörleri bu paket yolunda sağlanmaz. CLI/TUI'nin çalışması, yerel ses veya wake-word desteği olduğu anlamına gelmez.
+- Android'de `sys.platform == "android"` döner; yalnızca `linux` için koşullandırılmış bağımlılık veya skill otomatik olarak kullanılamaz.
+- `Package not found`: depo satırını doğrulayın, sonra `pkg update` çalıştırın.
+- İmza hatasında anahtar parmak izini doğrulayın; unsigned depo kullanmayın ve hatayı atlamayın.
+- Komut bulunamıyorsa `$PREFIX/bin` yolunun `PATH` içinde olduğunu doğrulayın veya paketi yeniden kurun.
+- Eksik kütüphane/TUI bundle durumunda `hermes --version` ve tam hatayla bildirim yapın; çekirdek paket yerel yeniden derleme gerektirmemelidir.
+- Gateway ekran kapandığında duruyorsa Android pil ve arka plan süreç sınırlarını inceleyin.
+
+Genel tanı için:
+
+```bash
+hermes doctor
+```
+
+## 7. Kaldırma ve güvenlik
+
+Paketi kaldırmak komut bağlantılarını siler; yapılandırmanızı, oturumlarınızı, skill'lerinizi ve memory'lerinizi korur:
+
+```bash
+pkg uninstall hermes-agent
+```
+
+- API anahtarlarını yalnızca `~/.hermes/.env` içinde tutun; sohbete, Git deposuna veya ortak depolamaya yazmayın.
+- Anahtar parmak izi uyuşmuyorsa devam etmeyin; imza kontrolünü atlamayın.
+- `HERMES_HOME` kullanıyorsanız güvenli ve erişilebilir bir konuma işaret ettiğini doğrulayın.
 
 ## Kaynaklar
 
@@ -192,7 +148,6 @@ pkg upgrade hermes-agent
 - [Hermes Agent — Cron](https://hermes-agent.nousresearch.com/docs/user-guide/features/cron)
 - [Termux resmî sitesi](https://termux.dev)
 - [Termux GitHub yayınları](https://github.com/termux/termux-app/releases)
-- [İleri seviye Termux Hermes rehberi](https://github.com/mogihermes/hermes-termux-tr)
 
 ## Lisans ve atıf
 
