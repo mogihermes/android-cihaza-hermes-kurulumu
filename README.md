@@ -67,7 +67,7 @@ hermes setup
 hermes --tui
 ```
 
-Paket; Python, Node.js, npm, uv, ripgrep, ffmpeg ve çalışma zamanı kütüphanelerini içerir. `hermes`, `hermes-agent` ve `hermes-acp` paketli çalışma zamanlarını kullanır; Termux'un `python` veya `nodejs` paketlerini ayrıca kurmanız gerekmez.
+Paket; Python, Node.js, npm, uv, ripgrep, ffmpeg ve çalışma zamanı kütüphanelerini içerir. Bionic interpreter sabitlemesiyle Python 3.14 kullanır; masaüstü CPython ile aynı patch sürümü gerekmez. `hermes`, `hermes-agent` ve `hermes-acp` paketli çalışma zamanlarını kullanır; Termux'un `python` veya `nodejs` paketlerini ayrıca kurmanız gerekmez.
 
 ## 4. Dosyalar ve güncelleme
 
