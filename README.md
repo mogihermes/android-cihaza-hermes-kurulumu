@@ -67,7 +67,7 @@ hermes setup
 hermes --tui
 ```
 
-Paket; Python, Node.js, npm, uv, ripgrep, ffmpeg ve çalışma zamanı kütüphanelerini içerir. Bionic interpreter sabitlemesiyle Python 3.14 kullanır; masaüstü CPython ile aynı patch sürümü gerekmez. `hermes`, `hermes-agent` ve `hermes-acp` paketli çalışma zamanlarını kullanır; Termux'un `python` veya `nodejs` paketlerini ayrıca kurmanız gerekmez.
+Paket; Python, Node.js, npm, uv, ripgrep, ffmpeg ve çalışma zamanı kütüphanelerini içerir. Bionic interpreter sabitlemesiyle Python 3.14 kullanır; masaüstü CPython ile aynı patch sürümü gerekmez. `hermes`, `hermes-agent` ve `hermes-acp` paketli çalışma zamanlarını kullanır; Termux'un `python` veya `nodejs` paketlerini ayrıca kurmanız gerekmez. Cihaz kurulum sırasında core bağımlılıkları veya temel Python ortamını derleme yapmaz. Hermes dashboard, pnpm'i indirip web arayüzünün JavaScript bağımlılıklarını yükler. CI, native Python tekerleklerini ve TUI'yi paket oluşturmadan önce derler. Wheel kapanışı core + acp olmak üzere, tüm masaüstü eklentileri içermez.
 
 ## 4. Dosyalar ve güncelleme
 
